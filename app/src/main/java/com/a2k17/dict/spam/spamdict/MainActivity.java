@@ -83,7 +83,6 @@ public class MainActivity extends AppCompatActivity {
                 ArrayList<String> result = data
                         .getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
                 String wordToLookUp = result.get(0);
-                System.out.println("Response " + wordToLookUp);
 //                lookUpWord(wordToLookUp, requestQueue);
                 new CallbackTask().execute(wordToLookUp);
             }
@@ -140,8 +139,6 @@ public class MainActivity extends AppCompatActivity {
                 while ((line = reader.readLine()) != null) {
                     stringBuilder.append(line + "\n");
                 }
-
-                System.out.println("repsonse " + stringBuilder.toString());
                 JSONObject myObject = new JSONObject(stringBuilder.toString());
                 JSONResponseParser.parseJSON(myObject);
                 return stringBuilder.toString();
