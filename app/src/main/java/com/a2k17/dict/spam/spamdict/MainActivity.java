@@ -16,27 +16,14 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
-/*import com.android.volley.Cache;
-import com.android.volley.Network;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.BasicNetwork;
-import com.android.volley.toolbox.DiskBasedCache;
-import com.android.volley.toolbox.HurlStack;
-import com.android.volley.toolbox.JsonObjectRequest;*/
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-//import org.json.simple.JSONObject;
-//import org.json.simple.parser.JSONParser;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Locale;
 
 
 import javax.net.ssl.HttpsURLConnection;
@@ -156,7 +143,7 @@ public class MainActivity extends AppCompatActivity {
 
                 System.out.println("repsonse " + stringBuilder.toString());
                 JSONObject myObject = new JSONObject(stringBuilder.toString());
-                parseJSON(myObject);
+                JSONResponseParser.parseJSON(myObject);
                 return stringBuilder.toString();
 
             } catch (Exception e) {
@@ -175,49 +162,6 @@ public class MainActivity extends AppCompatActivity {
 //            {
 //                parseJSON(jObject);
 //            }
-        }
-    }
-
-    public void parseJSON(JSONObject dictEntry) {
-        if (dictEntry != null)
-        {
-            try {
-                JSONArray results = (JSONArray) dictEntry.get("results");
-                for (int i = 0; i < results.length(); i++)
-                {
-                    JSONObject result = (JSONObject) results.get(i);
-                    JSONArray lexicalEntries = (JSONArray) result.get("lexicalEntries");
-                    if (lexicalEntries != null)
-                    {
-                        for (int j = 0; j < lexicalEntries.length(); j++)
-                        {
-                            JSONObject lexicalEntry = (JSONObject) lexicalEntries.get(j);
-                            JSONArray entries = (JSONArray) lexicalEntry.get("entries");
-                            for (int k = 0; k < entries.length(); k++)
-                            {
-                                JSONObject entry = (JSONObject) entries.get(k);
-                                JSONArray senses = (JSONArray) entry.get("senses");
-                                for (int l = 0; l < senses.length(); l++)
-                                {
-                                    JSONObject sense = (JSONObject) senses.get(l);
-                                    JSONArray translations = (JSONArray) sense.get("translations");
-                                    for (int m = 0; m < translations.length(); m++)
-                                    {
-                                        JSONObject translation = (JSONObject) translations.get(m);
-                                        String translationText = translation.getString("text");
-                                        System.out.println(translationText);
-                                    }
-                                }
-                            }
-                            System.out.println(lexicalEntry.toString());
-                        }
-                    }
-//                    result.get()
-                }
-            } catch (JSONException e) {
-                // TODO: no results
-                e.printStackTrace();
-            }
         }
     }
 }
