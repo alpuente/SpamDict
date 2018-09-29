@@ -4,13 +4,15 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+
 /**
  * Created by appleowner on 9/27/18.
  */
 
 public class JSONResponseParser {
 
-    public static void parseJSON(JSONObject dictEntry) {
+    public static void parseJSON(JSONObject dictEntry, ArrayList<Translation> translations) {
         if (dictEntry != null)
         {
             try {
@@ -25,7 +27,7 @@ public class JSONResponseParser {
                         if (result.has("lexicalEntries"))
                         {
                             JSONArray lexicalEntries = (JSONArray) result.get("lexicalEntries");
-                            parseLexicalEntries(lexicalEntries);
+                            parseLexicalEntries(lexicalEntries, translations);
                         }
                     }
                 }
@@ -53,7 +55,7 @@ public class JSONResponseParser {
 
         https://developer.oxforddictionaries.com/documentation#!/Translation/get_entries_source_translation_language_word_id_translations_target_translation_language
      */
-    private static void parseLexicalEntries(JSONArray lexicalEntries)
+    private static void parseLexicalEntries(JSONArray lexicalEntries, ArrayList<Translation> translations)
     {
         try {
 
@@ -64,9 +66,8 @@ public class JSONResponseParser {
                 if (lexicalEntry.has("entries"))
                 {
                     JSONArray entries = (JSONArray) lexicalEntry.get("entries");
-                    parseEntries(entries);
+                    parseEntries(entries, translations);
                 }
-                //System.out.println(lexicalEntry.toString());
             }
         }
         catch (JSONException e)
@@ -90,7 +91,7 @@ public class JSONResponseParser {
 
        https://developer.oxforddictionaries.com/documentation#!/Translation/get_entries_source_translation_language_word_id_translations_target_translation_language
      */
-    private static void parseEntries(JSONArray entries)
+    private static void parseEntries(JSONArray entries, ArrayList<Translation> translations)
     {
         try {
             for (int k = 0; k < entries.length(); k++)
@@ -100,7 +101,7 @@ public class JSONResponseParser {
                 if (entry.has("senses"))
                 {
                     JSONArray senses = (JSONArray) entry.get("senses");
-                    parseSenses(senses);
+                    parseSenses(senses, translations);
                 }
             }
         } catch (JSONException e)
@@ -109,14 +110,14 @@ public class JSONResponseParser {
         }
     }
 
-    private static void parseSenses(JSONArray senses) {
+    private static void parseSenses(JSONArray senses, ArrayList<Translation> translations) {
         try
         {
             // parse each sense object if there are senses
             for (int l = 0; l < senses.length(); l++)
             {
                 JSONObject sense = (JSONObject) senses.get(l);
-                parseSense(sense);
+                parseSense(sense, translations);
             }
         } catch (JSONException e)
         {
@@ -145,7 +146,7 @@ public class JSONResponseParser {
       }
         https://developer.oxforddictionaries.com/documentation#!/Translation/get_entries_source_translation_language_word_id_translations_target_translation_language
      */
-    private static void parseSense(JSONObject sense)
+    private static void parseSense(JSONObject sense, ArrayList<Translation> translationObjects)
     {
         try {
             if (sense.has("translations"))
@@ -153,7 +154,9 @@ public class JSONResponseParser {
                 JSONArray translations = (JSONArray) sense.get("translations");
                 for (int m = 0; m < translations.length(); m++) {
                     JSONObject translation = (JSONObject) translations.get(m);
-                    parseTranslation(translation);
+                    // add the translation to the list of translations
+                    // TODO: deal with duplicates
+                    translationObjects.add(parseTranslation(translation));
                 }
             }
             else {
@@ -163,7 +166,7 @@ public class JSONResponseParser {
                     JSONArray subSenses = (JSONArray) sense.get("subsenses");
                     if (subSenses != null)
                     {
-                        parseSenses(subSenses);
+                        parseSenses(subSenses, translationObjects);
                     }
                 }
             }
@@ -187,16 +190,11 @@ public class JSONResponseParser {
 
         https://developer.oxforddictionaries.com/documentation#!/Translation/get_entries_source_translation_language_word_id_translations_target_translation_language
      */
-    private static void parseTranslation(JSONObject translation)
+    private static Translation parseTranslation(JSONObject translation) throws JSONException
     {
-        try
-        {
-            String translationText = translation.getString("text");
-            System.out.println( "here is the translation text: " + translationText);
-        }
-        catch (JSONException e) {
-            // TODO: better error handling
-            e.printStackTrace();
-        }
+        String translationText = translation.getString("text");
+        System.out.println( "here is the translation text: " + translationText);
+        Translation translationObject = new Translation(translationText);
+        return translationObject;
     }
 }
