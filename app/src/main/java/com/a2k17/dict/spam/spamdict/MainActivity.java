@@ -6,13 +6,13 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.speech.RecognizerIntent;
-import android.speech.tts.TextToSpeech;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Switch;
 import android.widget.Toast;
 
 import org.json.JSONObject;
@@ -28,14 +28,13 @@ import javax.net.ssl.HttpsURLConnection;
 
 public class MainActivity extends AppCompatActivity {
 
-    int PERMISSION_AUDIO;
     int PERMISSION_MULTIPLE;
 
     // Speech input
     private final int REQ_CODE_SPEECH_INPUT = 100;
-    private int CHECK_TTS_CODE;
-    private int DESIRED_NUMBER_OF_TRANSLATIONS = 3;
-    private TextToSpeech textToSpeech;
+    private int desiredNumberOfTranslations = 3;
+    // handler for text to speech functionality
+    private TTSHandler ttsHandler;
 
     static {
         System.loadLibrary("keys");
@@ -56,10 +55,18 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // initialize TTS
-        textToSpeech = new TextToSpeech(this, new TtsListener());
+        ttsHandler = new TTSHandler(this, desiredNumberOfTranslations);
         //setupNetwork();
 
         final Button button = (Button) findViewById(R.id.wordbutton);
+        button.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                // prompt speech input when button is pressed
+                promptSpeechInput();
+            }
+        });
+
+        final Switch languageSwitch = (Switch) findViewById(R.id.languageSwitch);
         button.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 // prompt speech input when button is pressed
@@ -166,43 +173,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
-            playTtsOutput(translations, word);
-        }
-    }
-
-    // listener to check if tts initialization was implemented correctly
-    private class TtsListener implements TextToSpeech.OnInitListener
-    {
-        @Override
-        public void onInit(int status) {
-            if (status == TextToSpeech.SUCCESS) {
-                if (textToSpeech != null) {
-                    int result = textToSpeech.setLanguage(Locale.US);
-                    if (result == TextToSpeech.LANG_MISSING_DATA ||
-                            result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                        //Toast.makeText(this, "TTS language is not supported", Toast.LENGTH_LONG).show();
-                    }
-                }
-            } else {
-                // TODO: do something if tts initialization failed
-                //Toast.makeText(this, "TTS initialization failed", Toast.LENGTH_LONG).show();
-            }
-        }
-    }
-
-    /**
-     * play a translation object using tts
-     * */
-    public void playTtsOutput(ArrayList<Translation> translations, String word) {
-        int availableTranslations = translations.size();
-        textToSpeech.speak(word, TextToSpeech.QUEUE_ADD, null);
-        // if the desired number of translations is less than the number of available translations,
-        // use that as an upper limit of spoken translations
-        int maxTranslations = (availableTranslations < DESIRED_NUMBER_OF_TRANSLATIONS) ? availableTranslations : DESIRED_NUMBER_OF_TRANSLATIONS;
-        for (int i = 0; i < maxTranslations; i++)
-        {
-            String currentTranslation = translations.get(i).getDefinition();
-            textToSpeech.speak(currentTranslation, TextToSpeech.QUEUE_ADD, null);
+            ttsHandler.playTtsOutput(translations, word);
         }
     }
 }
