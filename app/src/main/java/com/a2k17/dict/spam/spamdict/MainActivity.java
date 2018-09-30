@@ -12,7 +12,6 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Toast;
 
@@ -122,11 +121,14 @@ public class MainActivity extends AppCompatActivity {
     private class CallbackTask extends AsyncTask<String, Integer, String> {
         // the translations returned from Oxford dictionary
         ArrayList<Translation> translations;
+        // the word spoken by user
+        String word;
 
+        // in background, query dictionary and parse response
         @Override
         protected String doInBackground(String... params) {
             // the word spoken by user
-            String word = params[0];
+            word = params[0];
 
             try {
                 String urlString = buildURL(word);
@@ -147,6 +149,7 @@ public class MainActivity extends AppCompatActivity {
                 while ((line = reader.readLine()) != null) {
                     stringBuilder.append(line + "\n");
                 }
+
                 JSONObject myObject = new JSONObject(stringBuilder.toString());
                 translations = new ArrayList<>();
                 JSONResponseParser.parseJSON(myObject, translations);
@@ -159,10 +162,11 @@ public class MainActivity extends AppCompatActivity {
 
         }
 
+        // read out the translations
         @Override
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
-            playTtsOutput(translations);
+            playTtsOutput(translations, word);
         }
     }
 
@@ -189,8 +193,9 @@ public class MainActivity extends AppCompatActivity {
     /**
      * play a translation object using tts
      * */
-    public void playTtsOutput(ArrayList<Translation> translations) {
+    public void playTtsOutput(ArrayList<Translation> translations, String word) {
         int availableTranslations = translations.size();
+        textToSpeech.speak(word, TextToSpeech.QUEUE_ADD, null);
         // if the desired number of translations is less than the number of available translations,
         // use that as an upper limit of spoken translations
         int maxTranslations = (availableTranslations < DESIRED_NUMBER_OF_TRANSLATIONS) ? availableTranslations : DESIRED_NUMBER_OF_TRANSLATIONS;
