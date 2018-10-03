@@ -21,8 +21,8 @@
     <Switch
         android:text="Language"
         android:showText="true"
-        android:textOn="ES/EN"
-        android:textOff="EN/ES"
+        android:textOn="EN/ES"
+        android:textOff="ES/EN"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/languageSwitch"

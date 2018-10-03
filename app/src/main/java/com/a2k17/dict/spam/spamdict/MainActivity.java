@@ -12,6 +12,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.Switch;
 import android.widget.Toast;
 
@@ -35,6 +36,12 @@ public class MainActivity extends AppCompatActivity {
     private int desiredNumberOfTranslations = 3;
     // handler for text to speech functionality
     private TTSHandler ttsHandler;
+    private String inputLanguage;
+    private Locale outputLanguage;
+    // input string to use in the http request
+    private String inputLanguageURL = "en";
+    // input string to use in the http request
+    private String outputLanguageURL = "es";
 
     static {
         System.loadLibrary("keys");
@@ -54,8 +61,13 @@ public class MainActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO, Manifest.permission.INTERNET}, PERMISSION_MULTIPLE);
         }
 
+        // Set defaults
+        outputLanguage = Locale.US;
+        inputLanguage = "es-mx";
+        inputLanguageURL = "es";
+        outputLanguageURL = "en";
         // initialize TTS
-        ttsHandler = new TTSHandler(this, desiredNumberOfTranslations);
+        ttsHandler = new TTSHandler(this, desiredNumberOfTranslations, outputLanguage);
         //setupNetwork();
 
         final Button button = (Button) findViewById(R.id.wordbutton);
@@ -67,6 +79,28 @@ public class MainActivity extends AppCompatActivity {
         });
 
         final Switch languageSwitch = (Switch) findViewById(R.id.languageSwitch);
+        languageSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    // The toggle is enabled
+                    // english to spanish
+                    inputLanguage = "en";
+                    inputLanguageURL = "en";
+                    outputLanguageURL = "es";
+                    // new locale for spanish
+                    Locale spanish = new Locale("es", "ES");
+                    ttsHandler.setOutputLanguage(spanish);
+                } else {
+                    // The toggle is disabled
+                    // spanish to english
+                    inputLanguage = "es-mx";
+                    inputLanguageURL = "es";
+                    outputLanguageURL = "en";
+                    ttsHandler.setOutputLanguage(Locale.US);
+                }
+            }
+        });
+
         button.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 // prompt speech input when button is pressed
@@ -105,7 +139,7 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
                 RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "es-mx");
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, inputLanguage);
         try {
             startActivityForResult(intent, REQ_CODE_SPEECH_INPUT);
         } catch (ActivityNotFoundException a) {
@@ -116,10 +150,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private String buildURL(String word) {
-        final String language = "es";
-        final String target_lang = "en";
         final String word_id = word.toLowerCase(); //word id is case sensitive and lowercase is required
-        return "https://od-api.oxforddictionaries.com:443/api/v1/entries/" + language + "/" + word_id + "/translations=" + target_lang;
+        System.out.println("https://od-api.oxforddictionaries.com:443/api/v1/entries/" + inputLanguageURL +
+                "/" + word_id + "/translations=" + outputLanguageURL);
+        return "https://od-api.oxforddictionaries.com:443/api/v1/entries/" + inputLanguageURL +
+                "/" + word_id + "/translations=" + outputLanguageURL;
     }
 
 

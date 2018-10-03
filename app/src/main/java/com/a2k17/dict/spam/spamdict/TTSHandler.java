@@ -13,11 +13,13 @@ public class TTSHandler {
     private int desiredNumTranslations;
     private TextToSpeech textToSpeech;
     private Context context;
+    private Locale currentLanguage;
 
-    public TTSHandler(Context activity, int desiredTranslations)
+    public TTSHandler(Context activity, int desiredTranslations, Locale language)
     {
         textToSpeech = new TextToSpeech(activity, new TtsListener());
         desiredNumTranslations = desiredTranslations;
+        currentLanguage = language;
     }
 
     /**
@@ -36,6 +38,11 @@ public class TTSHandler {
         }
     }
 
+    public void setOutputLanguage(Locale language)
+    {
+        currentLanguage = language;
+        textToSpeech.setLanguage(language);
+    }
 
     // listener to check if tts initialization was implemented correctly
     private class TtsListener implements TextToSpeech.OnInitListener
@@ -44,7 +51,7 @@ public class TTSHandler {
         public void onInit(int status) {
             if (status == TextToSpeech.SUCCESS) {
                 if (textToSpeech != null) {
-                    int result = textToSpeech.setLanguage(Locale.US);
+                    int result = textToSpeech.setLanguage(currentLanguage);
                     if (result == TextToSpeech.LANG_MISSING_DATA ||
                             result == TextToSpeech.LANG_NOT_SUPPORTED) {
                         Toast.makeText(context, "TTS language is not supported", Toast.LENGTH_LONG).show();
