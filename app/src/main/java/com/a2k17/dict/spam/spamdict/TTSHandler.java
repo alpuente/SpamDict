@@ -10,10 +10,21 @@ import java.util.Locale;
  * Created by appleowner on 9/30/18.
  */
 public class TTSHandler {
+    // how many translations should be read out
     private int desiredNumTranslations;
+
+    // text to speech object
     private TextToSpeech textToSpeech;
     private Context context;
+
+    // the current output language
     private Locale currentLanguage;
+
+    // hold on to the most recently returned translations so they can be replayed
+    private ArrayList<Translation> currentTranslations;
+
+    // the word that was just looked up in the dictionary
+    private String currentWord;
 
     public TTSHandler(Context activity, int desiredTranslations, Locale language)
     {
@@ -44,6 +55,20 @@ public class TTSHandler {
         textToSpeech.setLanguage(language);
     }
 
+    // replays most recent translation
+    // using the global variables currentTranslation and currentWord
+    public void replayTranslation()
+    {
+        // if the current translation, current word and
+        // textToSpeech object all are initialized, replay
+        if ((currentTranslations != null)
+                && (currentWord != null)
+                && (textToSpeech != null))
+        {
+            playTtsOutput(currentTranslations, currentWord);
+        }
+    }
+
     // listener to check if tts initialization was implemented correctly
     private class TtsListener implements TextToSpeech.OnInitListener
     {
@@ -62,5 +87,15 @@ public class TTSHandler {
                 Toast.makeText(context, "TTS initialization failed", Toast.LENGTH_LONG).show();
             }
         }
+    }
+
+    public void setCurrentTranslations(ArrayList<Translation> translations)
+    {
+        currentTranslations = translations;
+    }
+
+    public void setCurrentWord(String word)
+    {
+        currentWord = word;
     }
 }

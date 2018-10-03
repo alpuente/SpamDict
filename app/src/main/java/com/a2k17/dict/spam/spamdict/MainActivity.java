@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.media.Image;
 import android.os.AsyncTask;
 import android.speech.RecognizerIntent;
 import android.support.v4.app.ActivityCompat;
@@ -13,6 +14,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
+import android.widget.ImageButton;
 import android.widget.Switch;
 import android.widget.Toast;
 
@@ -34,10 +36,12 @@ public class MainActivity extends AppCompatActivity {
     // Speech input
     private final int REQ_CODE_SPEECH_INPUT = 100;
     private int desiredNumberOfTranslations = 3;
+
     // handler for text to speech functionality
     private TTSHandler ttsHandler;
     private String inputLanguage;
     private Locale outputLanguage;
+
     // input string to use in the http request
     private String inputLanguageURL = "en";
     // input string to use in the http request
@@ -75,6 +79,14 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 // prompt speech input when button is pressed
                 promptSpeechInput();
+            }
+        });
+
+        final ImageButton replayButton = (ImageButton) findViewById(R.id.replayButton);
+        replayButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                // prompt speech input when button is pressed
+                ttsHandler.replayTranslation();
             }
         });
 
@@ -195,6 +207,10 @@ public class MainActivity extends AppCompatActivity {
                 JSONObject myObject = new JSONObject(stringBuilder.toString());
                 translations = new ArrayList<>();
                 JSONResponseParser.parseJSON(myObject, translations);
+
+                // set the current translation info in ttsHandler
+                ttsHandler.setCurrentTranslations(translations);
+                ttsHandler.setCurrentWord(word);
                 return stringBuilder.toString();
 
             } catch (Exception e) {
