@@ -40,7 +40,8 @@ public class MainActivity extends AppCompatActivity {
     // handler for text to speech functionality
     private TTSHandler ttsHandler;
     private String inputLanguage;
-    private Locale outputLanguage;
+    private Locale inputLanguageLocale;
+    private Locale outputLanguageLocale;
 
     // input string to use in the http request
     private String inputLanguageURL = "en";
@@ -66,12 +67,13 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // Set defaults
-        outputLanguage = Locale.US;
-        inputLanguage = "es-mx";
+        outputLanguageLocale = Locale.US;
+        inputLanguageLocale = new Locale("es", "ES");
         inputLanguageURL = "es";
         outputLanguageURL = "en";
+        inputLanguage = "es-mx";
         // initialize TTS
-        ttsHandler = new TTSHandler(this, desiredNumberOfTranslations, outputLanguage);
+        ttsHandler = new TTSHandler(this, desiredNumberOfTranslations, inputLanguageLocale, outputLanguageLocale);
         //setupNetwork();
 
         final Button button = (Button) findViewById(R.id.wordbutton);
@@ -99,16 +101,20 @@ public class MainActivity extends AppCompatActivity {
                     inputLanguage = "en";
                     inputLanguageURL = "en";
                     outputLanguageURL = "es";
-                    // new locale for spanish
-                    Locale spanish = new Locale("es", "ES");
-                    ttsHandler.setOutputLanguage(spanish);
+
+                    // set output locale to spanish
+                    outputLanguageLocale = inputLanguageLocale;
+                    inputLanguageLocale = Locale.US;
+                    ttsHandler.setLanguages(inputLanguageLocale, outputLanguageLocale);
                 } else {
                     // The toggle is disabled
                     // spanish to english
                     inputLanguage = "es-mx";
                     inputLanguageURL = "es";
                     outputLanguageURL = "en";
-                    ttsHandler.setOutputLanguage(Locale.US);
+                    inputLanguageLocale = outputLanguageLocale;
+                    outputLanguageLocale = Locale.US;
+                    ttsHandler.setLanguages(inputLanguageLocale, outputLanguageLocale);
                 }
             }
         });
@@ -161,6 +167,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    // build a url to request translation of a word from Oxford Dictionaries
     private String buildURL(String word) {
         final String word_id = word.toLowerCase(); //word id is case sensitive and lowercase is required
         System.out.println("https://od-api.oxforddictionaries.com:443/api/v1/entries/" + inputLanguageURL +

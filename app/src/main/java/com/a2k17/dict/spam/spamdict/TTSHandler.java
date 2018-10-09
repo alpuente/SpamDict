@@ -3,6 +3,9 @@ package com.a2k17.dict.spam.spamdict;
 import android.content.Context;
 import android.speech.tts.TextToSpeech;
 import android.widget.Toast;
+
+import org.w3c.dom.Text;
+
 import java.util.ArrayList;
 import java.util.Locale;
 
@@ -14,11 +17,13 @@ public class TTSHandler {
     private int desiredNumTranslations;
 
     // text to speech object
-    private TextToSpeech textToSpeech;
+    private TextToSpeech outputTextToSpeech;
+    private TextToSpeech inputTextToSpeech;
     private Context context;
 
     // the current output language
-    private Locale currentLanguage;
+//    private Locale currentLanguage;
+
 
     // hold on to the most recently returned translations so they can be replayed
     private ArrayList<Translation> currentTranslations;
@@ -26,11 +31,19 @@ public class TTSHandler {
     // the word that was just looked up in the dictionary
     private String currentWord;
 
-    public TTSHandler(Context activity, int desiredTranslations, Locale language)
+    public TTSHandler(Context activity, int desiredTranslations, Locale inputLanguage, Locale outputLanguage)
     {
-        textToSpeech = new TextToSpeech(activity, new TtsListener());
+        // set to read output language
+        // ex. read out translation of hola in english
+        outputTextToSpeech = new TextToSpeech(activity, new TtsListener());
+        outputTextToSpeech.setLanguage(outputLanguage);
+
+        // set to read the input language
+        // ex. read out hola in spanish before reading translation in english
+        inputTextToSpeech = new TextToSpeech(activity, new TtsListener());
+        inputTextToSpeech.setLanguage(inputLanguage);
+
         desiredNumTranslations = desiredTranslations;
-        currentLanguage = language;
     }
 
     /**
@@ -38,21 +51,22 @@ public class TTSHandler {
      * */
     public void playTtsOutput(ArrayList<Translation> translations, String word) {
         int availableTranslations = translations.size();
-        textToSpeech.speak(word, TextToSpeech.QUEUE_ADD, null);
+        // read out the input word that was searched in the input language
+        inputTextToSpeech.speak(word, TextToSpeech.QUEUE_ADD, null);
         // if the desired number of translations is less than the number of available translations,
         // use that as an upper limit of spoken translations
         int maxTranslations = (availableTranslations < desiredNumTranslations) ? availableTranslations : desiredNumTranslations;
         for (int i = 0; i < maxTranslations; i++)
         {
             String currentTranslation = translations.get(i).getDefinition();
-            textToSpeech.speak(currentTranslation, TextToSpeech.QUEUE_ADD, null);
+            outputTextToSpeech.speak(currentTranslation, TextToSpeech.QUEUE_ADD, null);
         }
     }
 
-    public void setOutputLanguage(Locale language)
+    public void setLanguages(Locale inputLanguage, Locale outputLanguage)
     {
-        currentLanguage = language;
-        textToSpeech.setLanguage(language);
+        outputTextToSpeech.setLanguage(outputLanguage);
+        inputTextToSpeech.setLanguage(inputLanguage);
     }
 
     // replays most recent translation
@@ -63,7 +77,7 @@ public class TTSHandler {
         // textToSpeech object all are initialized, replay
         if ((currentTranslations != null)
                 && (currentWord != null)
-                && (textToSpeech != null))
+                && (outputTextToSpeech != null))
         {
             playTtsOutput(currentTranslations, currentWord);
         }
@@ -74,17 +88,9 @@ public class TTSHandler {
     {
         @Override
         public void onInit(int status) {
-            if (status == TextToSpeech.SUCCESS) {
-                if (textToSpeech != null) {
-                    int result = textToSpeech.setLanguage(currentLanguage);
-                    if (result == TextToSpeech.LANG_MISSING_DATA ||
-                            result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                        Toast.makeText(context, "TTS language is not supported", Toast.LENGTH_LONG).show();
-                    }
-                }
-            } else {
-                // TODO: do something if tts initialization failed
-                Toast.makeText(context, "TTS initialization failed", Toast.LENGTH_LONG).show();
+            //TODO: handle all this better
+            if (status != TextToSpeech.SUCCESS) {
+                Toast.makeText(context, "TTS language is not supported", Toast.LENGTH_LONG).show();
             }
         }
     }
