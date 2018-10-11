@@ -142,9 +142,16 @@ public class MainActivity extends AppCompatActivity {
             if (resultCode == RESULT_OK && null != data) {
                 ArrayList<String> result = data
                         .getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
-                String wordToLookUp = result.get(0);
-//                lookUpWord(wordToLookUp, requestQueue);
-                new CallbackTask().execute(wordToLookUp);
+
+                // get the input words and look the first one up
+                String inputSTT = result.get(0);
+                new CallbackTask().execute(inputSTT);
+            }
+            else {
+                // notify user that the speech wasn't recognized
+                Toast.makeText(getApplicationContext(),
+                        "Speech not recognized",
+                        Toast.LENGTH_LONG).show();
             }
         }
     }
@@ -176,6 +183,12 @@ public class MainActivity extends AppCompatActivity {
                 "/" + word_id + "/translations=" + outputLanguageURL;
     }
 
+    // get the first word from the stt input string
+    private String getFirstWord(String inputWord)
+    {
+        String[] inputWords = inputWord.split("\\s+");
+        return inputWords[0];
+    }
 
     //in android calling network requests on the main thread forbidden by default
     //create class to do async job
@@ -189,7 +202,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected String doInBackground(String... params) {
             // the word spoken by user
-            word = params[0];
+            word = getFirstWord(params[0]);
 
             try {
                 String urlString = buildURL(word);
@@ -198,6 +211,7 @@ public class MainActivity extends AppCompatActivity {
                 // TODO: should I only be creating this connection once?
                 HttpsURLConnection urlConnection = (HttpsURLConnection) url.openConnection();
                 urlConnection.setRequestProperty("Accept", "application/json");
+
                 // get application keys to connect to Oxford dictionaries
                 urlConnection.setRequestProperty("app_id", getKey1());
                 urlConnection.setRequestProperty("app_key", getKey2());
@@ -222,6 +236,9 @@ public class MainActivity extends AppCompatActivity {
 
             } catch (Exception e) {
                 e.printStackTrace();
+                Toast.makeText(getApplicationContext(),
+                        "Unable to look up translation",
+                        Toast.LENGTH_SHORT).show();
                 return e.toString();
             }
 
@@ -231,7 +248,16 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
-            ttsHandler.playTtsOutput(translations, word);
+            if ((translations != null) && (word != null))
+            {
+                ttsHandler.playTtsOutput(translations, word);
+            }
+            else
+            {
+                Toast.makeText(getApplicationContext(),
+                        "No translations found",
+                        Toast.LENGTH_SHORT).show();
+            }
         }
     }
 }

@@ -53,6 +53,7 @@ public class TTSHandler {
         int availableTranslations = translations.size();
         // read out the input word that was searched in the input language
         inputTextToSpeech.speak(word, TextToSpeech.QUEUE_ADD, null);
+
         // if the desired number of translations is less than the number of available translations,
         // use that as an upper limit of spoken translations
         int maxTranslations = (availableTranslations < desiredNumTranslations) ? availableTranslations : desiredNumTranslations;

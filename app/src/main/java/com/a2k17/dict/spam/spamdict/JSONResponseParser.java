@@ -193,7 +193,6 @@ public class JSONResponseParser {
     private static Translation parseTranslation(JSONObject translation) throws JSONException
     {
         String translationText = translation.getString("text");
-        System.out.println( "here is the translation text: " + translationText);
         Translation translationObject = new Translation(translationText);
         return translationObject;
     }
